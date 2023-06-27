@@ -4,24 +4,10 @@
 # basic hardening that can be done to protect your server. I assimilated several design ideas from AMega's
 # VPS hardening script which I found on Github seemingly abandoned. I am very happy to finish it.
 
-function akguy_banner() {
-    cat << "EOF"
- ▄████████    ▄█   ▄█▄  ▄████████    ▄████████ ▄██   ▄      ▄███████▄     ███      ▄██████▄     ▄██████▄  ███    █▄  ▄██   ▄
-  ███    ███   ███ ▄███▀ ███    ███   ███    ███ ███   ██▄   ███    ███ ▀█████████▄ ███    ███   ███    ███ ███    ███ ███   ██▄
-  ███    ███   ███▐██▀   ███    █▀    ███    ███ ███▄▄▄███   ███    ███    ▀███▀▀██ ███    ███   ███    █▀  ███    ███ ███▄▄▄███
-  ███    ███  ▄█████▀    ███         ▄███▄▄▄▄██▀ ▀▀▀▀▀▀███   ███    ███     ███   ▀ ███    ███  ▄███        ███    ███ ▀▀▀▀▀▀███
-▀███████████ ▀▀█████▄    ███        ▀▀███▀▀▀▀▀   ▄██   ███ ▀█████████▀      ███     ███    ███ ▀▀███ ████▄  ███    ███ ▄██   ███
-  ███    ███   ███▐██▄   ███    █▄  ▀███████████ ███   ███   ███            ███     ███    ███   ███    ███ ███    ███ ███   ███
-  ███    ███   ███ ▀███▄ ███    ███   ███    ███ ███   ███   ███            ███     ███    ███   ███    ███ ███    ███ ███   ███
-  ███    █▀    ███   ▀█▀ ████████▀    ███    ███  ▀█████▀   ▄████▀         ▄████▀    ▀██████▀    ████████▀  ████████▀   ▀█████▀
-               ▀                      ███    ███
-EOF
-}
-
 # ###### SECTIONS ######
 # 1. CREATE SWAP / if no swap exists, create 1 GB swap
 # 2. UPDATE AND UPGRADE / update operating system & pkgs
-# 3. INSTALL FAVORED PACKAGES / useful tools & utilities
+# 3. INSTALL USEFUL PACKAGES / useful tools & utilities
 # 4. INSTALL CRYPTO PACKAGES / common crypto packages
 # 5. USER SETUP / add new sudo user, copy SSH keys
 # 6. SSH CONFIG / change SSH port, disable root login
@@ -87,16 +73,16 @@ function setup_environment() {
 }
 
 function check_distro() {
-    # currently only for Ubuntu 16.04
+    # currently only for Ubuntu 22.04
     if [[ -r /etc/os-release ]]; then
         . /etc/os-release
-        if [[ "${VERSION_ID}" != "16.04" ]] ; then
-            echo -e "\nThis script works the very best with Ubuntu 16.04 LTS."
+        if [[ "${VERSION_ID}" != "22.04" ]] ; then
+            echo -e "\nThis script works the very best with Ubuntu 22.04 LTS."
             echo -e "Some elements of this script won't work correctly on other releases.\n"
         fi
     else
         # no, thats not ok!
-        echo -e "This script only supports Ubuntu 16.04, exiting.\n"
+        echo -e "This script only supports Ubuntu 22.04, exiting.\n"
         exit 1
     fi
 }
@@ -107,7 +93,7 @@ function begin_log() {
     echo -e "---------------------------------------------------- " | tee -a "$LOGFILE"
     echo -e " $(date +%m.%d.%Y_%H:%M:%S) : SCRIPT STARTED SUCCESSFULLY " | tee -a "$LOGFILE"
     echo -e "---------------------------------------------------- " | tee -a "$LOGFILE"
-    echo -e "------- AKcryptoGUY's VPS Hardening Script --------- " | tee -a "$LOGFILE"
+    echo -e "--------------- VPS Hardening Script --------------- " | tee -a "$LOGFILE"
     echo -e "---------------------------------------------------- \n" | tee -a "$LOGFILE"
     echo -e -n "${nocolor}"
     sleep 2
@@ -122,17 +108,17 @@ function create_swap() {
     # this is an alternative that will disable swap, and create a new one at the size you like
     # sudo swapoff -a && sudo dd if=/dev/zero of=/swapfile bs=1M count=6144 MB && sudo mkswap /swapfile && sudo swapon /swapfile
     echo -e -n "${yellow}"
-    echo -e "------------------------------------------------- " | tee -a "$LOGFILE"
+    echo -e "------------------------------------------------------- " | tee -a "$LOGFILE"
     echo -e " $(date +%m.%d.%Y_%H:%M:%S) : CHECK FOR AND CREATE SWAP " | tee -a "$LOGFILE"
-    echo -e "------------------------------------------------- \n" | tee -a "$LOGFILE"
+    echo -e "------------------------------------------------------- \n" | tee -a "$LOGFILE"
     echo -e -n "${white}"
 
     # Check for swap file - if none, create one
     if free | awk '/^Swap:/ {exit !$2}'; then
         echo -e -n "${lightred}"
-        echo -e "---------------------------------------------------- " | tee -a "$LOGFILE"
+        echo -e "---------------------------------------------------------- " | tee -a "$LOGFILE"
         echo -e " $(date +%m.%d.%Y_%H:%M:%S) : Swap exists- No changes made " | tee -a "$LOGFILE"
-        echo -e "---------------------------------------------------- \n"  | tee -a "$LOGFILE"
+        echo -e "-------------------------------------------------------- \n"  | tee -a "$LOGFILE"
         sleep 2
         echo -e -n "${nocolor}"
     else
@@ -216,117 +202,305 @@ function update_upgrade() {
 }
 
 #
-#  PROMPT WHETHER USER WANTS TO INSTALL FAVORED PACKAGES OR ALSO ADD THEIR OWN CUSTOM PACKAGES
+#  PROMPT WHETHER USER WANTS TO INSTALL USEFUL PACKAGES OR ALSO ADD THEIR OWN CUSTOM PACKAGES
 #
 
-function favored_packages() {
+function useful_packages() {
     # install my favorite and commonly used packages
     echo -e -n "${lightcyan}"
-    figlet Install Favored | tee -a "$LOGFILE"
+    figlet Install USEFUL | tee -a "$LOGFILE"
     echo -e -n "${yellow}"
     echo -e "--------------------------------------------------- " | tee -a "$LOGFILE"
-    echo -e " $(date +%m.%d.%Y_%H:%M:%S) : INSTALLING FAVORED PACKAGES " | tee -a "$LOGFILE"
+    echo -e " $(date +%m.%d.%Y_%H:%M:%S) : INSTALLING USEFUL PACKAGES " | tee -a "$LOGFILE"
     echo -e "--------------------------------------------------- " | tee -a "$LOGFILE"
     echo -e -n "${white}"
     echo ' # apt-get -qqy -o=Dpkg::Use-Pty=0 -o=Acquire::ForceIPv4=true install ' | tee -a "$LOGFILE"
-    echo '   htop nethogs ufw fail2ban wondershaper glances ntp figlet lsb-release ' | tee -a "$LOGFILE"
-    echo '   update-motd unattended-upgrades secure-delete net-tools dnsutils' | tee -a "$LOGFILE"
+    echo '   htop nethogs ufw fail2ban glances ntp figlet lsb-release wget apt-transport-https zip unzip' | tee -a "$LOGFILE"
+    echo '   software-properties-common update-motd unattended-upgrades secure-delete net-tools dnsutils gnupg' | tee -a "$LOGFILE"
+    echo '   libjpeg62 libgdiplus awscli' | tee -a "$LOGFILE"
     echo -e "------------------------------------------------- " | tee -a "$LOGFILE"
     echo -e -n "${nocolor}"
     apt-get -qqy -o=Dpkg::Use-Pty=0 -o=Acquire::ForceIPv4=true install \
-        htop nethogs ufw fail2ban wondershaper glances ntp figlet lsb-release \
-        update-motd unattended-upgrades secure-delete net-tools dnsutils | tee -a "$LOGFILE"
+        htop nethogs ufw fail2ban glances ntp figlet lsb-release wget apt-transport-https zip unzip \
+        software-properties-common update-motd unattended-upgrades secure-delete net-tools dnsutils gnupg \
+        libjpeg62 libgdiplus awscli | tee -a "$LOGFILE"
     echo -e -n "${lightgreen}"
     echo -e "----------------------------------------------------- " | tee -a "$LOGFILE"
-    echo -e " $(date +%m.%d.%Y_%H:%M:%S) : FAVORED INSTALLED SUCCESFULLY " | tee -a "$LOGFILE"
+    echo -e " $(date +%m.%d.%Y_%H:%M:%S) : USEFUL INSTALLED SUCCESFULLY " | tee -a "$LOGFILE"
     echo -e "----------------------------------------------------- " | tee -a "$LOGFILE"
     echo -e -n "${nocolor}"
 }
 
-#  PROMPT WHETHER USER WANTS TO INSTALL COMMON CRYPTO PACKAGES OR NOT
-
-#####################
-## CRYPTO PACKAGES ##
-#####################
-function crypto_packages() {
+function install_netcore() {
+# query user to setup a non-root user account or not
     echo -e -n "${lightcyan}"
-    figlet Crypto Setup | tee -a "$LOGFILE"
+    figlet .NET Core Setup | tee -a "$LOGFILE"
     echo -e -n "${yellow}"
-    echo -e "---------------------------------------------------- " | tee -a "$LOGFILE"
-    echo -e " $(date +%m.%d.%Y_%H:%M:%S) : QUERY TO INSTALL CRYPTO PKGS " | tee -a "$LOGFILE"
-    echo -e "---------------------------------------------------- \n"
-    echo -e -n "${lightcyan}"
-    echo " I frequently use Ubuntu Virtual Machines for cryptocurrency projects"
-    echo " to compile or build wallets from source code but I realize that there"
-    echo " are plenty of other reasons to use them. If using the VPS for crypto,"
-    echo " installing these packages now can save you some time later. "
-    echo -e "\n"
+    echo -e "--------------------------------------------------------- " | tee -a "$LOGFILE"
+    echo -e " $(date +%m.%d.%Y_%H:%M:%S) : QUERY TO INSTALL .NET CORE" | tee -a "$LOGFILE"
+    echo -e "--------------------------------------------------------- \n"
+    echo -e -n "${cyan}"
+       while :; do
+        echo -e "\n"
+        read -n 1 -s -r -p " Would you like to install the .NET Core Runtime? y/n  " NETCORE
+        if [[ ${NETCORE,,} == "y" || ${NETCORE,,} == "Y" || ${NETCORE,,} == "N" || ${NETCORE,,} == "n" ]]
+        then
+               break
+           fi
+       done
+    echo -e "${nocolor}"
 
-        echo -e -n "${cyan}"
-            while :; do
-            echo -e "\n"
-            read -n 1 -s -r -p " Would you like to install these crypto packages now? y/n  " INSTALLCRYPTO
-            if [[ ${INSTALLCRYPTO,,} == "y" || ${INSTALLCRYPTO,,} == "Y" || ${INSTALLCRYPTO,,} == "N" || ${INSTALLCRYPTO,,} == "n" ]]
-            then
-                break
-            fi
-        done
-        echo -e "${nocolor}"
-
-    # check if INSTALLCRYPTO is valid
-    if [ "${INSTALLCRYPTO,,}" = "Y" ] || [ "${INSTALLCRYPTO,,}" = "y" ]
+    # check if NETCORE is valid
+    if [ "${NETCORE,,}" = "Y" ] || [ "${NETCORE,,}" = "y" ]
     then echo -e "\n"
-        echo -e -n "${yellow}"
-        echo -e " Great; let's install them now... \n"
-        echo -e -n "${lightcyan}"
-        figlet Install Crypto | tee -a "$LOGFILE"
-        echo -e -n "${yellow}"
-        echo -e "-------------------------------------------------- " | tee -a "$LOGFILE"
-        echo -e " $(date +%m.%d.%Y_%H:%M:%S) : INSTALLING CRYPTO PACKAGES " | tee -a "$LOGFILE"
-        echo -e "-------------------------------------------------- " | tee -a "$LOGFILE"
-        echo -e -n "${white}"
-        echo ' # add-apt-repository -yu ppa:bitcoin/bitcoin' | tee -a "$LOGFILE"
-        echo -e "---------------------------------------------------- " | tee -a "$LOGFILE"
-        echo -e -n "${nocolor}"
-        add-apt-repository -yu ppa:bitcoin/bitcoin | tee -a "$LOGFILE"
-        echo -e -n "${white}"
-        echo -e "---------------------------------------------------------------------- " | tee -a "$LOGFILE"
-        echo ' # apt-get -qqy -o=Dpkg::Use-Pty=0 -o=Acquire::ForceIPv4=true install ' | tee -a "$LOGFILE"
-        echo '   build-essential g++ protobuf-compiler libboost-all-dev autotools-dev ' | tee -a "$LOGFILE"
-        echo '   automake libcurl4-openssl-dev libboost-all-dev libssl-dev libdb++-dev ' | tee -a "$LOGFILE"
-        echo '   make autoconf automake libtool git apt-utils libprotobuf-dev pkg-config ' | tee -a "$LOGFILE"
-        echo '   libcurl3-dev libudev-dev libqrencode-dev bsdmainutils pkg-config libssl-dev ' | tee -a "$LOGFILE"
-        echo '   libgmp3-dev libevent-dev jp2a pv virtualenv lsb-release update-motd ' | tee -a "$LOGFILE"
-        echo -e "----------------------------------------------------------------------- " | tee -a "$LOGFILE"
-        echo -e -n "${lightred}"
-        echo -e " This step can appear to hang for a minute or two so don't be alarmed "
-        echo -e "---------------------------------------------------------------------- "
-        echo -e -n "${nocolor}"
-        apt-get -qqy -o=Dpkg::Use-Pty=0 -o=Acquire::ForceIPv4=true install \
-            build-essential g++ protobuf-compiler libboost-all-dev autotools-dev \
-            automake libcurl4-openssl-dev libboost-all-dev libssl-dev libdb++-dev \
-            make autoconf automake libtool git apt-utils libprotobuf-dev pkg-config \
-            libcurl3-dev libudev-dev libqrencode-dev bsdmainutils pkg-config libssl-dev \
-            libgmp3-dev libevent-dev jp2a pv virtualenv lsb-release update-motd  | tee -a "$LOGFILE"
-			
-        # need more testing to see if autoremove breaks the script or not
-        # apt autoremove -y | tee -a "$LOGFILE"
-        clear
-        echo -e -n "${lightgreen}"
-        echo -e "---------------------------------------------------- " | tee -a "$LOGFILE"
-        echo -e " $(date +%m.%d.%Y_%H:%M:%S) : CRYPTO INSTALLED SUCCESFULLY " | tee -a "$LOGFILE"
-        echo -e "---------------------------------------------------- " | tee -a "$LOGFILE"
-        echo -e -n "${nocolor}"
-    else 	echo -e -n "${yellow}"
+         echo -e -n "${yellow}"
+         echo -e "--------------------------------------------------- " | tee -a "$LOGFILE"
+         echo -e " $(date +%m.%d.%Y_%H:%M:%S) : INSTALLING .NET CORE RUNTIME " | tee -a "$LOGFILE"
+         echo -e "--------------------------------------------------- " | tee -a "$LOGFILE"
+         echo -e -n "${white}"
+         echo ' # apt-get -qqy -o=Dpkg::Use-Pty=0 -o=Acquire::ForceIPv4=true install aspnetcore-runtime-6.0' | tee -a "$LOGFILE"
+         echo -e "------------------------------------------------- " | tee -a "$LOGFILE"
+         echo -e -n "${nocolor}"
+         apt-get -qqy -o=Dpkg::Use-Pty=0 -o=Acquire::ForceIPv4=true install aspnetcore-runtime-6.0 | tee -a "$LOGFILE"
+         echo -e -n "${lightgreen}"
+         echo -e "----------------------------------------------------- " | tee -a "$LOGFILE"
+         echo -e " $(date +%m.%d.%Y_%H:%M:%S) : .NET CORE RUNTIME INSTALLED SUCCESFULLY " | tee -a "$LOGFILE"
+         echo -e "----------------------------------------------------- " | tee -a "$LOGFILE"
+         echo -e -n "${nocolor}"
+    else
+     	echo -e -n "${yellow}"
         clear
         echo  -e "----------------------------------------------------- " >> $LOGFILE 2>&1
-        echo  "    ** User chose not to install crypto packages **" >> $LOGFILE 2>&1
+        echo  "    ** Skipping .NET Core Runtime **" >> $LOGFILE 2>&1
         echo  -e "-----------------------------------------------------" >> $LOGFILE 2>&1
     fi
     echo -e -n "${lightgreen}"
-    echo -e "----------------------------------------------------- " | tee -a "$LOGFILE"
-    echo -e " $(date +%m.%d.%Y_%H:%M:%S) : CRYPTO PACKAGE SETUP COMPLETE " | tee -a "$LOGFILE"
-    echo -e "----------------------------------------------------- " | tee -a "$LOGFILE"
+    echo -e "----------------------------------------------------------------- " | tee -a "$LOGFILE"
+    echo -e " $(date +%m.%d.%Y_%H:%M:%S) : .NET CORE RUNTIME SETUP IS COMPLETE " | tee -a "$LOGFILE"
+    echo -e "----------------------------------------------------------------- " | tee -a "$LOGFILE"
+    echo -e -n "${nocolor}"
+}
+
+function install_powershell() {
+# query user to setup a non-root user account or not
+    echo -e -n "${lightcyan}"
+    figlet Powershell Setup | tee -a "$LOGFILE"
+    echo -e -n "${yellow}"
+    echo -e "--------------------------------------------------------- " | tee -a "$LOGFILE"
+    echo -e " $(date +%m.%d.%Y_%H:%M:%S) : QUERY TO INSTALL POWERSHELL" | tee -a "$LOGFILE"
+    echo -e "--------------------------------------------------------- \n"
+    echo -e -n "${cyan}"
+        while :; do
+            echo -e "\n"
+            read -n 1 -s -r -p " Would you like to install Powershell? y/n  " PSHELL
+        if [[ ${PSHELL,,} == "y" || ${PSHELL,,} == "Y" || ${PSHELL,,} == "N" || ${PSHELL,,} == "n" ]]
+        then
+            break
+        fi
+        done
+    echo -e "${nocolor}"
+
+    # check if PSHELL is valid
+    if [ "${PSHELL,,}" = "Y" ] || [ "${PSHELL,,}" = "y" ]
+    then echo -e "\n"
+         echo -e -n "${yellow}"
+         echo -e "--------------------------------------------------- " | tee -a "$LOGFILE"
+         echo -e " $(date +%m.%d.%Y_%H:%M:%S) : INSTALLING POWERSHELL " | tee -a "$LOGFILE"
+         echo -e "--------------------------------------------------- " | tee -a "$LOGFILE"
+         echo -e -n "${white}"
+         echo ' # apt-get -qqy -o=Dpkg::Use-Pty=0 -o=Acquire::ForceIPv4=true install ' | tee -a "$LOGFILE"
+         echo '   powershell' | tee -a "$LOGFILE"
+         echo -e "------------------------------------------------- " | tee -a "$LOGFILE"
+         echo -e -n "${nocolor}"
+         wget -q "https://packages.microsoft.com/config/ubuntu/$(lsb_release -rs)/packages-microsoft-prod.deb"
+         sudo dpkg -i packages-microsoft-prod.deb
+         rm packages-microsoft-prod.deb
+         apt-get -o=Dpkg::Use-Pty=0 -o=Acquire::ForceIPv4=true update | tee -a "$LOGFILE"
+         apt-get -qqy -o=Dpkg::Use-Pty=0 -o=Acquire::ForceIPv4=true install powershell | tee -a "$LOGFILE"
+         sed -i -e '$aSubsystem powershell /usr/bin/pwsh -sshs -nologo' $SSHDFILE
+         echo -e -n "${lightgreen}"
+         echo -e "----------------------------------------------------- " | tee -a "$LOGFILE"
+         echo -e " $(date +%m.%d.%Y_%H:%M:%S) : POWERSHELL INSTALLED SUCCESFULLY " | tee -a "$LOGFILE"
+         echo -e "----------------------------------------------------- " | tee -a "$LOGFILE"
+         echo -e -n "${nocolor}"
+    else
+     	echo -e -n "${yellow}"
+        echo  -e "----------------------------------------------------- " >> $LOGFILE 2>&1
+        echo  "    ** Skipping Powershell Install **" >> $LOGFILE 2>&1
+        echo  -e "-----------------------------------------------------" >> $LOGFILE 2>&1
+    fi
+
+    echo -e -n "${lightgreen}"
+    echo -e "----------------------------------------------------------------- " | tee -a "$LOGFILE"
+    echo -e " $(date +%m.%d.%Y_%H:%M:%S) : POWERSHELL SETUP IS COMPLETE " | tee -a "$LOGFILE"
+    echo -e "----------------------------------------------------------------- " | tee -a "$LOGFILE"
+    echo -e -n "${nocolor}"
+}
+
+#####################
+## INSTALL MONGODB ##
+#####################
+
+function install_mongodb() {
+# query user to setup a non-root user account or not
+    echo -e -n "${lightcyan}"
+    figlet MongoDb Enterprise Setup | tee -a "$LOGFILE"
+    echo -e -n "${yellow}"
+    echo -e "--------------------------------------------------------- " | tee -a "$LOGFILE"
+    echo -e " $(date +%m.%d.%Y_%H:%M:%S) : QUERY TO INSTALL MONGODB ENTERPRISE" | tee -a "$LOGFILE"
+    echo -e "--------------------------------------------------------- \n"
+    echo -e -n "${cyan}"
+    while :; do
+        echo -e "\n"
+        read -n 1 -s -r -p " Would you like to install MongoDb Enterprise? y/n  " MONGODB
+        if [[ ${MONGODB,,} == "y" || ${MONGODB,,} == "Y" || ${MONGODB,,} == "N" || ${MONGODB,,} == "n" ]]
+        then
+            break
+        fi
+    done
+    echo -e "${nocolor}"
+
+    # check if MONGODB is valid
+    if [ "${MONGODB,,}" = "Y" ] || [ "${MONGODB,,}" = "y" ]
+    then echo -e "\n"
+         echo -e -n "${yellow}"
+         echo -e "--------------------------------------------------- " | tee -a "$LOGFILE"
+         echo -e " $(date +%m.%d.%Y_%H:%M:%S) : INSTALLING MONGODB ENTERPRISE " | tee -a "$LOGFILE"
+         echo -e "--------------------------------------------------- " | tee -a "$LOGFILE"
+         echo -e -n "${white}"
+         echo ' # apt-get -qqy -o=Dpkg::Use-Pty=0 -o=Acquire::ForceIPv4=true install ' | tee -a "$LOGFILE"
+         echo '   mongodb-enterprise-database mongodb-enterprise-tools mongodb-mongosh-shared-openssl3' | tee -a "$LOGFILE"
+         echo -e "------------------------------------------------- " | tee -a "$LOGFILE"
+         echo -e -n "${nocolor}"
+         curl -fsSL https://pgp.mongodb.com/server-6.0.asc | sudo gpg -o /usr/share/keyrings/mongodb-server-6.0.gpg --dearmor
+         echo "deb [ arch=amd64,arm64 signed-by=/usr/share/keyrings/mongodb-server-6.0.gpg ] https://repo.mongodb.com/apt/ubuntu jammy/mongodb-enterprise/6.0 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-enterprise-6.0.list
+         apt-get -o=Dpkg::Use-Pty=0 -o=Acquire::ForceIPv4=true update | tee -a "$LOGFILE"
+         apt-get -qqy -o=Dpkg::Use-Pty=0 -o=Acquire::ForceIPv4=true install mongodb-enterprise-database mongodb-enterprise-tools mongodb-mongosh-shared-openssl3 | tee -a "$LOGFILE"
+         systemctl enable mongod
+         systemctl start mongod
+         echo -e -n "${lightgreen}"
+         echo -e "----------------------------------------------------- " | tee -a "$LOGFILE"
+         echo -e " $(date +%m.%d.%Y_%H:%M:%S) : MONGODB ENTERPRISE INSTALLED SUCCESFULLY " | tee -a "$LOGFILE"
+         echo -e "----------------------------------------------------- " | tee -a "$LOGFILE"
+         echo -e -n "${nocolor}"
+    else
+        echo -e -n "${yellow}"
+        echo  -e "----------------------------------------------------- " >> $LOGFILE 2>&1
+        echo  "    ** Skipping MongoDb Install **" >> $LOGFILE 2>&1
+        echo  -e "-----------------------------------------------------" >> $LOGFILE 2>&1
+    fi
+    echo -e -n "${lightgreen}"
+    echo -e "----------------------------------------------------------------- " | tee -a "$LOGFILE"
+    echo -e " $(date +%m.%d.%Y_%H:%M:%S) : MONGODB ENTERPRISE SETUP IS COMPLETE " | tee -a "$LOGFILE"
+    echo -e "----------------------------------------------------------------- " | tee -a "$LOGFILE"
+    echo -e -n "${nocolor}"
+}
+
+###################
+## INSTALL NGINX ##
+###################
+
+function install_nginx() {
+# query user to setup a non-root user account or not
+    echo -e -n "${lightcyan}"
+    figlet Nginx Setup | tee -a "$LOGFILE"
+    echo -e -n "${yellow}"
+    echo -e "--------------------------------------------------------- " | tee -a "$LOGFILE"
+    echo -e " $(date +%m.%d.%Y_%H:%M:%S) : QUERY TO INSTALL NGINX" | tee -a "$LOGFILE"
+    echo -e "--------------------------------------------------------- \n"
+    echo -e -n "${cyan}"
+    while :; do
+        echo -e "\n"
+        read -n 1 -s -r -p " Would you like to install Nginx? y/n  " NGINX
+        if [[ ${NGINX,,} == "y" || ${NGINX,,} == "Y" || ${NGINX,,} == "N" || ${NGINX,,} == "n" ]]
+        then
+            break
+        fi
+    done
+    echo -e "${nocolor}"
+
+    # check if NGINX is valid
+    if [ "${NGINX,,}" = "Y" ] || [ "${NGINX,,}" = "y" ]
+    then echo -e "\n"
+         echo -e -n "${yellow}"
+         echo -e "--------------------------------------------------- " | tee -a "$LOGFILE"
+         echo -e " $(date +%m.%d.%Y_%H:%M:%S) : INSTALLING NGINX  " | tee -a "$LOGFILE"
+         echo -e "--------------------------------------------------- " | tee -a "$LOGFILE"
+         echo -e -n "${white}"
+         echo ' # apt-get -qqy -o=Dpkg::Use-Pty=0 -o=Acquire::ForceIPv4=true install nginx' | tee -a "$LOGFILE"
+         echo -e "------------------------------------------------- " | tee -a "$LOGFILE"
+         echo -e -n "${nocolor}"
+         apt-get -qqy -o=Dpkg::Use-Pty=0 -o=Acquire::ForceIPv4=true install nginx | tee -a "$LOGFILE"
+         sudo systemctl enable nginx
+         sudo systemctl start nginx
+         echo -e -n "${lightgreen}"
+         echo -e "----------------------------------------------------- " | tee -a "$LOGFILE"
+         echo -e " $(date +%m.%d.%Y_%H:%M:%S) : NGINX INSTALLED SUCCESFULLY " | tee -a "$LOGFILE"
+         echo -e "----------------------------------------------------- " | tee -a "$LOGFILE"
+         echo -e -n "${nocolor}"
+    else
+        echo -e -n "${yellow}"
+        echo  -e "----------------------------------------------------- " >> $LOGFILE 2>&1
+        echo  "    ** Skipping Nginx Install **" >> $LOGFILE 2>&1
+        echo  -e "-----------------------------------------------------" >> $LOGFILE 2>&1
+    fi
+    echo -e -n "${lightgreen}"
+    echo -e "----------------------------------------------------------------- " | tee -a "$LOGFILE"
+    echo -e " $(date +%m.%d.%Y_%H:%M:%S) : NGINX SETUP IS COMPLETE " | tee -a "$LOGFILE"
+    echo -e "----------------------------------------------------------------- " | tee -a "$LOGFILE"
+    echo -e -n "${nocolor}"
+}
+
+###################
+## INSTALL SUPERVISOR ##
+###################
+
+function install_supervisor() {
+    # query user to supervisor
+    echo -e -n "${lightcyan}"
+    figlet Nginx Setup | tee -a "$LOGFILE"
+    echo -e -n "${yellow}"
+    echo -e "--------------------------------------------------------- " | tee -a "$LOGFILE"
+    echo -e " $(date +%m.%d.%Y_%H:%M:%S) : QUERY TO INSTALL SUPERVISOR" | tee -a "$LOGFILE"
+    echo -e "--------------------------------------------------------- \n"
+    echo -e -n "${cyan}"
+    while :; do
+        echo -e "\n"
+        read -n 1 -s -r -p " Would you like to install Supervisor? y/n  " SUPERVISOR
+        if [[ ${SUPERVISOR,,} == "y" || ${SUPERVISOR,,} == "Y" || ${SUPERVISOR,,} == "N" || ${SUPERVISOR,,} == "n" ]]
+        then
+            break
+        fi
+    done
+    echo -e "${nocolor}"
+
+    # check if SUPERVISOR is valid
+    if [ "${SUPERVISOR,,}" = "Y" ] || [ "${SUPERVISOR,,}" = "y" ]
+    then echo -e "\n"
+         echo -e -n "${yellow}"
+         echo -e "--------------------------------------------------- " | tee -a "$LOGFILE"
+         echo -e " $(date +%m.%d.%Y_%H:%M:%S) : INSTALLING SUPERVISOR  " | tee -a "$LOGFILE"
+         echo -e "--------------------------------------------------- " | tee -a "$LOGFILE"
+         echo -e -n "${white}"
+         echo ' # apt-get -qqy -o=Dpkg::Use-Pty=0 -o=Acquire::ForceIPv4=true install supervisor' | tee -a "$LOGFILE"
+         echo -e "------------------------------------------------- " | tee -a "$LOGFILE"
+         echo -e -n "${nocolor}"
+         apt-get -qqy -o=Dpkg::Use-Pty=0 -o=Acquire::ForceIPv4=true install supervisor | tee -a "$LOGFILE"
+         echo -e -n "${lightgreen}"
+         echo -e "----------------------------------------------------- " | tee -a "$LOGFILE"
+         echo -e " $(date +%m.%d.%Y_%H:%M:%S) : SUPERVISOR INSTALLED SUCCESFULLY " | tee -a "$LOGFILE"
+         echo -e "----------------------------------------------------- " | tee -a "$LOGFILE"
+         echo -e -n "${nocolor}"
+    else
+        echo -e -n "${yellow}"
+        echo  -e "----------------------------------------------------- " >> $LOGFILE 2>&1
+        echo  "    ** Skipping Supervisor Install **" >> $LOGFILE 2>&1
+        echo  -e "-----------------------------------------------------" >> $LOGFILE 2>&1
+    fi
+    echo -e -n "${lightgreen}"
+    echo -e "----------------------------------------------------------------- " | tee -a "$LOGFILE"
+    echo -e " $(date +%m.%d.%Y_%H:%M:%S) : SUPERVISOR SETUP IS COMPLETE " | tee -a "$LOGFILE"
+    echo -e "----------------------------------------------------------------- " | tee -a "$LOGFILE"
     echo -e -n "${nocolor}"
 }
 
@@ -349,7 +523,7 @@ function add_user() {
     echo " infinitely more secure, I will not think less of you if you choose to"
     echo " use an RSA key and continue to login as root. I am able to create a "
     echo -e " non-root user if you want me to, but it is not required. \n"
-    
+
             echo -e -n "${cyan}"
             while :; do
             echo -e "\n"
@@ -521,7 +695,7 @@ function prompt_rootlogin {
         echo -e "---------------------------------------------------- " | tee -a "$LOGFILE"
         echo -e " Your root login settings are: " "$ROOTLOGINP"  | tee -a "$LOGFILE"
         echo -e "---------------------------------------------------- \n" | tee -a "$LOGFILE"
-        
+
             echo -e -n "${cyan}"
             while :; do
             echo -e "\n"
@@ -532,7 +706,7 @@ function prompt_rootlogin {
             fi
         done
         echo -e "${nocolor}"
-        
+
         # check if ROOTLOGIN is valid
         if [ "${ROOTLOGIN,,}" = "Y" ] || [ "${ROOTLOGIN,,}" = "y" ]
         then :
@@ -590,7 +764,7 @@ function disable_passauth() {
     echo -e "----------------------------------------------- \n"
     echo -e "${lightcyan}"
     echo -e " You can log into your server using an RSA public-private key pair or"
-    echo -e " a password.  Using RSA keys for login is tremendously more secure"
+    echo -e " a password. Using RSA keys for login is tremendously more secure"
     echo -e " than just using a password. If you have installed an RSA key-pair"
     echo -e " and use that to login, you should disable password authentication.\n"
     echo -e "${nocolor}"
@@ -614,7 +788,7 @@ function disable_passauth() {
         echo -e " Your current password authentication settings are   " >> $LOGFILE 2>&1
         echo -e "      ** $PASSWDAUTH ** " >> $LOGFILE 2>&1
         echo -e "--------------------------------------------------- " >> $LOGFILE 2>&1
-        
+
         echo -e -n "${cyan}"
             while :; do
             echo -e "\n"
@@ -625,7 +799,7 @@ function disable_passauth() {
             fi
         done
         echo -e "${nocolor}\n"
-        
+
         # check if PASSLOGIN is valid
         if [ "${PASSLOGIN,,}" = "Y" ] || [ "${PASSLOGIN,,}" = "y" ]
         then
@@ -666,6 +840,266 @@ function disable_passauth() {
     echo -e " $(date +%m.%d.%Y_%H:%M:%S) : PASSWORD AUTHENTICATION COMPLETE " | tee -a "$LOGFILE"
     echo -e "-------------------------------------------------------- " | tee -a "$LOGFILE"
     echo -e "    Your PasswordAuthentication settings are now "  | tee -a "$LOGFILE"
+    echo -e "       ** $PASSWDAUTH ** " | tee -a "$LOGFILE"
+    echo -e "------------------------------------------- \n" | tee -a "$LOGFILE"
+    echo -e -n "${nocolor}"
+}
+
+########################
+## FURTHER HARDEN SSH ##
+########################
+
+function harden_ssh() {
+    # query user to harden SSH or not
+    echo -e -n "${lightcyan}"
+    figlet Pass Auth | tee -a "$LOGFILE"
+    echo -e "${yellow}"
+    echo -e "----------------------------------------------- " | tee -a "$LOGFILE"
+    echo -e " $(date +%m.%d.%Y_%H:%M:%S) : HARDEN SSH " | tee -a "$LOGFILE"
+    echo -e "----------------------------------------------- \n"
+    echo -e "${lightcyan}"
+    echo -e " In addition to RSA Authentication (above) there are other default "
+    echo -e " SSH settings that can be changed to make SSH more secure."
+    echo -e " Under normal circumstances, you should change these defaults.\n"
+    echo -e "   MaxAuthTries 3\n"
+    echo -e "   LoginGraceTime 20\n"
+    echo -e "   PermitEmptyPasswords no\n"
+    echo -e "   KerberosAuthentication no\n"
+    echo -e "   GSSAPIAuthentication no\n"
+    echo -e "   X11Forwarding no\n"
+    echo -e "   AllowAgentForwarding no\n"
+    echo -e "   AllowTcpForwarding no\n"
+    echo -e "   PermitTunnel no\n"
+    echo -e "   MaxSessions 5\n"
+    echo -e "${nocolor}"
+
+    echo -e -n "${cyan}"
+       while :; do
+       echo -e "\n"
+       read -n 1 -s -r -p " Would you like to update these SSH settings? y/n  " HARDENSSH
+       if [[ ${HARDENSSH,,} == "y" || ${HARDENSSH,,} == "Y" || ${HARDENSSH,,} == "N" || ${HARDENSSH,,} == "n" ]]
+       then
+           break
+       fi
+    done
+    echo -e "${nocolor}\n"
+
+        # check if HARDENSSH is valid
+        if [ "${HARDENSSH,,}" = "Y" ] || [ "${HARDENSSH,,}" = "y" ]
+        then
+            sed -i "s/MaxAuthTries .*/MaxAuthTries 3/" $SSHDFILE >> $LOGFILE
+            sed -i "s/#MaxAuthTries .*/MaxAuthTries 3/" $SSHDFILE >> $LOGFILE
+            sed -i "s/# MaxAuthTries .*/MaxAuthTries 3/" $SSHDFILE >> $LOGFILE
+
+            # Error Handling
+            if [ $? -eq 0 ]
+            then
+                echo -e -n "${lightgreen}"
+                echo -e "---------------------------------------------------- " | tee -a "$LOGFILE"
+                echo " $(date +%m.%d.%Y_%H:%M:%S) : SUCCESS : MaxAuthTries Updated " | tee -a "$LOGFILE"
+                echo -e "---------------------------------------------------- \n" | tee -a "$LOGFILE"
+                echo -e -n "${nocolor}"
+            else
+                echo -e -n "${lightred}"
+                echo -e "---------------------------------------------------- " | tee -a "$LOGFILE"
+                echo " $(date +%m.%d.%Y_%H:%M:%S) : ERROR: MaxAuthTries NOT Updated : " | tee -a "$LOGFILE"
+                echo -e "---------------------------------------------------- \n" | tee -a "$LOGFILE"
+                echo -e -n "${nocolor}"
+            fi
+
+            sed -i "s/PermitEmptyPasswords .*/PermitEmptyPasswords no/" $SSHDFILE >> $LOGFILE
+            sed -i "s/#PermitEmptyPasswords .*/PermitEmptyPasswords no/" $SSHDFILE >> $LOGFILE
+            sed -i "s/# PermitEmptyPasswords .*/PermitEmptyPasswords no/" $SSHDFILE >> $LOGFILE
+
+            # Error Handling
+            if [ $? -eq 0 ]
+            then
+                echo -e -n "${lightgreen}"
+                echo -e "---------------------------------------------------- " | tee -a "$LOGFILE"
+                echo " $(date +%m.%d.%Y_%H:%M:%S) : SUCCESS : PermitEmptyPasswords Updated " | tee -a "$LOGFILE"
+                echo -e "---------------------------------------------------- \n" | tee -a "$LOGFILE"
+                echo -e -n "${nocolor}"
+            else
+                echo -e -n "${lightred}"
+                echo -e "---------------------------------------------------- " | tee -a "$LOGFILE"
+                echo " $(date +%m.%d.%Y_%H:%M:%S) : ERROR: PermitEmptyPasswords NOT Updated : " | tee -a "$LOGFILE"
+                echo -e "---------------------------------------------------- \n" | tee -a "$LOGFILE"
+                echo -e -n "${nocolor}"
+            fi
+
+            sed -i "s/LoginGraceTime .*/LoginGraceTime 20/" $SSHDFILE >> $LOGFILE
+            sed -i "s/#LoginGraceTime .*/LoginGraceTime 20/" $SSHDFILE >> $LOGFILE
+            sed -i "s/# LoginGraceTime .*/LoginGraceTime 20/" $SSHDFILE >> $LOGFILE
+
+            # Error Handling
+            if [ $? -eq 0 ]
+            then
+                echo -e -n "${lightgreen}"
+                echo -e "---------------------------------------------------- " | tee -a "$LOGFILE"
+                echo " $(date +%m.%d.%Y_%H:%M:%S) : SUCCESS : LoginGraceTime Updated " | tee -a "$LOGFILE"
+                echo -e "---------------------------------------------------- \n" | tee -a "$LOGFILE"
+                echo -e -n "${nocolor}"
+            else
+                echo -e -n "${lightred}"
+                echo -e "---------------------------------------------------- " | tee -a "$LOGFILE"
+                echo " $(date +%m.%d.%Y_%H:%M:%S) : ERROR: LoginGraceTime NOT Updated : " | tee -a "$LOGFILE"
+                echo -e "---------------------------------------------------- \n" | tee -a "$LOGFILE"
+                echo -e -n "${nocolor}"
+            fi
+
+            sed -i "s/KerberosAuthentication .*/KerberosAuthentication no/" $SSHDFILE >> $LOGFILE
+            sed -i "s/#KerberosAuthentication .*/KerberosAuthentication no/" $SSHDFILE >> $LOGFILE
+            sed -i "s/# KerberosAuthentication .*/KerberosAuthentication no/" $SSHDFILE >> $LOGFILE
+
+            # Error Handling
+            if [ $? -eq 0 ]
+            then
+                echo -e -n "${lightgreen}"
+                echo -e "---------------------------------------------------- " | tee -a "$LOGFILE"
+                echo " $(date +%m.%d.%Y_%H:%M:%S) : SUCCESS : KerberosAuthentication Updated " | tee -a "$LOGFILE"
+                echo -e "---------------------------------------------------- \n" | tee -a "$LOGFILE"
+                echo -e -n "${nocolor}"
+            else
+                echo -e -n "${lightred}"
+                echo -e "---------------------------------------------------- " | tee -a "$LOGFILE"
+                echo " $(date +%m.%d.%Y_%H:%M:%S) : ERROR: KerberosAuthentication NOT Updated : " | tee -a "$LOGFILE"
+                echo -e "---------------------------------------------------- \n" | tee -a "$LOGFILE"
+                echo -e -n "${nocolor}"
+            fi
+
+            sed -i "s/GSSAPIAuthentication .*/GSSAPIAuthentication no/" $SSHDFILE >> $LOGFILE
+            sed -i "s/#GSSAPIAuthentication .*/GSSAPIAuthentication no/" $SSHDFILE >> $LOGFILE
+            sed -i "s/# GSSAPIAuthentication .*/GSSAPIAuthentication no/" $SSHDFILE >> $LOGFILE
+
+            # Error Handling
+            if [ $? -eq 0 ]
+            then
+                echo -e -n "${lightgreen}"
+                echo -e "---------------------------------------------------- " | tee -a "$LOGFILE"
+                echo " $(date +%m.%d.%Y_%H:%M:%S) : SUCCESS : GSSAPIAuthentication Updated " | tee -a "$LOGFILE"
+                echo -e "---------------------------------------------------- \n" | tee -a "$LOGFILE"
+                echo -e -n "${nocolor}"
+            else
+                echo -e -n "${lightred}"
+                echo -e "---------------------------------------------------- " | tee -a "$LOGFILE"
+                echo " $(date +%m.%d.%Y_%H:%M:%S) : ERROR: GSSAPIAuthentication NOT Updated : " | tee -a "$LOGFILE"
+                echo -e "---------------------------------------------------- \n" | tee -a "$LOGFILE"
+                echo -e -n "${nocolor}"
+            fi
+
+            sed -i "s/X11Forwarding .*/X11Forwarding no/" $SSHDFILE >> $LOGFILE
+            sed -i "s/#X11Forwarding .*/X11Forwarding no/" $SSHDFILE >> $LOGFILE
+            sed -i "s/# X11Forwarding .*/X11Forwarding no/" $SSHDFILE >> $LOGFILE
+
+            # Error Handling
+            if [ $? -eq 0 ]
+            then
+                echo -e -n "${lightgreen}"
+                echo -e "---------------------------------------------------- " | tee -a "$LOGFILE"
+                echo " $(date +%m.%d.%Y_%H:%M:%S) : SUCCESS : X11Forwarding Updated " | tee -a "$LOGFILE"
+                echo -e "---------------------------------------------------- \n" | tee -a "$LOGFILE"
+                echo -e -n "${nocolor}"
+            else
+                echo -e -n "${lightred}"
+                echo -e "---------------------------------------------------- " | tee -a "$LOGFILE"
+                echo " $(date +%m.%d.%Y_%H:%M:%S) : ERROR: X11Forwarding NOT Updated : " | tee -a "$LOGFILE"
+                echo -e "---------------------------------------------------- \n" | tee -a "$LOGFILE"
+                echo -e -n "${nocolor}"
+            fi
+
+            sed -i "s/AllowAgentForwarding .*/AllowAgentForwarding no/" $SSHDFILE >> $LOGFILE
+            sed -i "s/#AllowAgentForwarding .*/AllowAgentForwarding no/" $SSHDFILE >> $LOGFILE
+            sed -i "s/# AllowAgentForwarding .*/AllowAgentForwarding no/" $SSHDFILE >> $LOGFILE
+
+            # Error Handling
+            if [ $? -eq 0 ]
+            then
+                echo -e -n "${lightgreen}"
+                echo -e "---------------------------------------------------- " | tee -a "$LOGFILE"
+                echo " $(date +%m.%d.%Y_%H:%M:%S) : SUCCESS : AllowAgentForwarding Updated " | tee -a "$LOGFILE"
+                echo -e "---------------------------------------------------- \n" | tee -a "$LOGFILE"
+                echo -e -n "${nocolor}"
+            else
+                echo -e -n "${lightred}"
+                echo -e "---------------------------------------------------- " | tee -a "$LOGFILE"
+                echo " $(date +%m.%d.%Y_%H:%M:%S) : ERROR: AllowAgentForwarding NOT Updated : " | tee -a "$LOGFILE"
+                echo -e "---------------------------------------------------- \n" | tee -a "$LOGFILE"
+                echo -e -n "${nocolor}"
+            fi
+
+            sed -i "s/AllowTcpForwarding .*/AllowTcpForwarding no/" $SSHDFILE >> $LOGFILE
+            sed -i "s/#AllowTcpForwarding .*/AllowTcpForwarding no/" $SSHDFILE >> $LOGFILE
+            sed -i "s/# AllowTcpForwarding .*/AllowTcpForwarding no/" $SSHDFILE >> $LOGFILE
+
+            # Error Handling
+            if [ $? -eq 0 ]
+            then
+                echo -e -n "${lightgreen}"
+                echo -e "---------------------------------------------------- " | tee -a "$LOGFILE"
+                echo " $(date +%m.%d.%Y_%H:%M:%S) : SUCCESS : AllowTcpForwarding Updated " | tee -a "$LOGFILE"
+                echo -e "---------------------------------------------------- \n" | tee -a "$LOGFILE"
+                echo -e -n "${nocolor}"
+            else
+                echo -e -n "${lightred}"
+                echo -e "---------------------------------------------------- " | tee -a "$LOGFILE"
+                echo " $(date +%m.%d.%Y_%H:%M:%S) : ERROR: AllowTcpForwarding NOT Updated : " | tee -a "$LOGFILE"
+                echo -e "---------------------------------------------------- \n" | tee -a "$LOGFILE"
+                echo -e -n "${nocolor}"
+            fi
+
+            sed -i "s/PermitTunnel .*/PermitTunnel no/" $SSHDFILE >> $LOGFILE
+            sed -i "s/#PermitTunnel .*/PermitTunnel no/" $SSHDFILE >> $LOGFILE
+            sed -i "s/# PermitTunnel .*/PermitTunnel no/" $SSHDFILE >> $LOGFILE
+
+            # Error Handling
+            if [ $? -eq 0 ]
+            then
+                echo -e -n "${lightgreen}"
+                echo -e "---------------------------------------------------- " | tee -a "$LOGFILE"
+                echo " $(date +%m.%d.%Y_%H:%M:%S) : SUCCESS : PermitTunnel Updated " | tee -a "$LOGFILE"
+                echo -e "---------------------------------------------------- \n" | tee -a "$LOGFILE"
+                echo -e -n "${nocolor}"
+            else
+                echo -e -n "${lightred}"
+                echo -e "---------------------------------------------------- " | tee -a "$LOGFILE"
+                echo " $(date +%m.%d.%Y_%H:%M:%S) : ERROR: PermitTunnel NOT Updated : " | tee -a "$LOGFILE"
+                echo -e "---------------------------------------------------- \n" | tee -a "$LOGFILE"
+                echo -e -n "${nocolor}"
+            fi
+
+                        sed -i "s/MaxSessions .*/MaxSessions 5/" $SSHDFILE >> $LOGFILE
+            sed -i "s/#MaxSessions .*/MaxSessions 5/" $SSHDFILE >> $LOGFILE
+            sed -i "s/# MaxSessions .*/MaxSessions 5/" $SSHDFILE >> $LOGFILE
+
+            # Error Handling
+            if [ $? -eq 0 ]
+            then
+                echo -e -n "${lightgreen}"
+                echo -e "---------------------------------------------------- " | tee -a "$LOGFILE"
+                echo " $(date +%m.%d.%Y_%H:%M:%S) : SUCCESS : MaxSessions Updated " | tee -a "$LOGFILE"
+                echo -e "---------------------------------------------------- \n" | tee -a "$LOGFILE"
+                echo -e -n "${nocolor}"
+            else
+                echo -e -n "${lightred}"
+                echo -e "---------------------------------------------------- " | tee -a "$LOGFILE"
+                echo " $(date +%m.%d.%Y_%H:%M:%S) : ERROR: MaxSessions NOT Updated : " | tee -a "$LOGFILE"
+                echo -e "---------------------------------------------------- \n" | tee -a "$LOGFILE"
+                echo -e -n "${nocolor}"
+            fi
+
+        else
+            echo -e -n "${lightred}"
+            echo -e "---------------------------------------------------- " | tee -a "$LOGFILE"
+            echo " $(date +%m.%d.%Y_%H:%M:%S) : NO CHANGES MADE TO SSH : " | tee -a "$LOGFILE"
+            echo -e "---------------------------------------------------- \n" | tee -a "$LOGFILE"
+            echo -e -n "${nocolor}"
+        fi
+
+    echo -e -n "${lightgreen}"
+    echo -e "-------------------------------------------------------- " | tee -a "$LOGFILE"
+    echo -e " $(date +%m.%d.%Y_%H:%M:%S) : HARDEN SSH COMPLETE " | tee -a "$LOGFILE"
+    echo -e "-------------------------------------------------------- " | tee -a "$LOGFILE"
+    echo -e "    Your PasswordAuthentication settings are now "  | tee -a "$LOGFILE"
     echo -e "        ** $PASSWDAUTH ** " | tee -a "$LOGFILE"
     echo -e "------------------------------------------- \n" | tee -a "$LOGFILE"
     echo -e -n "${nocolor}"
@@ -675,6 +1109,75 @@ function disable_passauth() {
     echo -e " $(date +%m.%d.%Y_%H:%M:%S) : SSH CONFIG COMPLETE " | tee -a "$LOGFILE"
     echo -e "------------------------------------------- " | tee -a "$LOGFILE"
     echo -e -n "${nocolor}"
+}
+
+###################
+## LIMIT JOURNAL ##
+###################
+
+function limit_journal() {
+        # query user to Limit the Journal Size or not
+    echo -e -n "${lightcyan}"
+    figlet Pass Auth | tee -a "$LOGFILE"
+    echo -e "${yellow}"
+    echo -e "----------------------------------------------- " | tee -a "$LOGFILE"
+    echo -e " $(date +%m.%d.%Y_%H:%M:%S) : LIMIT MAX JOURNAL SIZE " | tee -a "$LOGFILE"
+    echo -e "----------------------------------------------- \n"
+    echo -e "${lightcyan}"
+    echo -e " The journal is a component of systemd. It's a centralized location for all messages\n"
+    echo -e " logged by different components in a systemd-enabled Linux system. This includes kernel and boot messages,\n"
+    echo -e " messages coming from syslog, or different services.By default, systemd-journald ensures older journal records\n"
+    echo -e " or journal files are deleted in order to keep a certain amount of disk space free.\n"
+    echo -e " You can also manage disk space taken up by systemd journal by fine-tuning these configuration parameters:"
+    echo -e "   COMPRESS\n"
+    echo -e "   SYSTEMKEEPFREE\n"
+    echo -e "   RUNTIMEKEEPFREE\n"
+    echo -e "   SYSTEMMAXFILESIZE\n"
+    echo -e "   RUNTIMEMAXFILESIZE\n"
+    echo -e "   MAXRETENTIONSEC\n"
+    echo -e "   MAXFILESEC\n"
+    echo -e "${nocolor}"
+
+    echo -e -n "${cyan}"
+       while :; do
+       echo -e "\n"
+       read -n 1 -s -r -p " Would you like to update these settings? y/n  " UPDATEJOURNAL
+       if [[ ${UPDATEJOURNAL,,} == "y" || ${UPDATEJOURNAL,,} == "Y" || ${UPDATEJOURNAL,,} == "N" || ${UPDATEJOURNAL,,} == "n" ]]
+       then
+           break
+       fi
+    done
+    echo -e "${nocolor}\n"
+
+    # check if UPDATEJOURNAL is valid
+    if [ "${UPDATEJOURNAL,,}" = "Y" ] || [ "${UPDATEJOURNAL,,}" = "y" ]
+    then
+       sed -i "s/SystemMaxUse .*/SystemMaxUse 300/" $SSHDFILE >> $LOGFILE
+       sed -i "s/#SystemMaxUse .*/SystemMaxUse 300/" $SSHDFILE >> $LOGFILE
+       sed -i "s/# SystemMaxUse .*/SystemMaxUse 300/" $SSHDFILE >> $LOGFILE
+
+       # Error Handling
+       if [ $? -eq 0 ]
+       then
+           echo -e -n "${lightgreen}"
+           echo -e "---------------------------------------------------- " | tee -a "$LOGFILE"
+           echo " $(date +%m.%d.%Y_%H:%M:%S) : SUCCESS : SystemMaxUse Updated " | tee -a "$LOGFILE"
+           echo -e "---------------------------------------------------- \n" | tee -a "$LOGFILE"
+           echo -e -n "${nocolor}"
+       else
+           echo -e -n "${lightred}"
+           echo -e "---------------------------------------------------- " | tee -a "$LOGFILE"
+           echo " $(date +%m.%d.%Y_%H:%M:%S) : ERROR: SystemMaxUse NOT Updated : " | tee -a "$LOGFILE"
+           echo -e "---------------------------------------------------- \n" | tee -a "$LOGFILE"
+           echo -e -n "${nocolor}"
+       fi
+    fi
+    echo -e -n "${lightgreen}"
+    echo -e "------------------------------------------------ " | tee -a "$LOGFILE"
+    echo -e " $(date +%m.%d.%Y_%H:%M:%S) : JOURNAL UPDATE COMPLETE " | tee -a "$LOGFILE"
+    echo -e "------------------------------------------------ " | tee -a "$LOGFILE"
+    echo -e -n "${nocolor}"
+
 }
 
 ################
@@ -696,7 +1199,7 @@ function ufw_config() {
     echo -e " to protect your server."
     echo -e
     echo -e " * If you already configured UFW, choose NO to keep your existing rules\n"
-    
+
         echo -e -n "${cyan}"
             while :; do
             echo -e "\n"
@@ -707,7 +1210,7 @@ function ufw_config() {
             fi
         done
         echo -e "${nocolor}\n"
-    
+
     if [ "${FIREWALLP,,}" = "Y" ] || [ "${FIREWALLP,,}" = "y" ]
     then	echo -e -n "${nocolor}"
         # make sure ufw is installed #
@@ -769,8 +1272,8 @@ function server_hardening() {
                 break
             fi
         done
-        echo -e "${nocolor}\n"    
-    
+        echo -e "${nocolor}\n"
+
     # check if GETHARD is valid
     if [ "${GETHARD,,}" = "Y" ] || [ "${GETHARD,,}" = "y" ]
     then
@@ -823,7 +1326,7 @@ function server_hardening() {
         sleep 2	; #  dramatic pause
 
         . /etc/os-release
-        if [[ "${VERSION_ID}" = "16.04" ]] 
+        if [[ "${VERSION_ID}" = "16.04" ]]
         then cat etc/apt/apt.conf.d/10periodic > /etc/apt/apt.conf.d/10periodic
         else cat etc/apt/apt.conf.d/20auto-upgrades > /etc/apt/apt.conf.d/20auto-upgrades
         fi
@@ -884,8 +1387,8 @@ function google_auth() {
                 break
             fi
         done
-        echo -e "${nocolor}\n"    
-    
+        echo -e "${nocolor}\n"
+
     # check if GOOGLEAUTH is valid
     if [ "${GOOGLEAUTH,,}" = "Y" ] || [ "${GOOGLEAUTH,,}" = "y" ]
     then
@@ -909,7 +1412,7 @@ function google_auth() {
         sed -i "s/ChallengeResponseAuthentication no/ChallengeResponseAuthentication yes/" /etc/ssh/sshd_config
         sed -i "s/PasswordAuthentication yes/PasswordAuthentication no/" /etc/ssh/sshd_config
         echo 'AuthenticationMethods publickey,keyboard-interactive' | sudo tee -a /etc/ssh/sshd_config
-        
+
             # copy Google Auth key to new user if it exists
             if [ "${UNAME,,}" ] && [ -e /root/.google_authenticator ]
             then # copy root Google Authenticator file new non-root user
@@ -959,7 +1462,7 @@ function ksplice_install() {
         . /etc/os-release
         if [[ "${VERSION_ID}" != "16.04" ]] ; then
             echo -e "This KSplice install script only works for Ubuntu 16.04 at the moment, skipping.\n"
-        else 
+        else
 
     # -------> I still need to install an error check after installing Ksplice to make sure \
         #          the install completed before moving on the configuration
@@ -978,7 +1481,7 @@ function ksplice_install() {
     echo -e " Uptrack installs these patches in memory for Ubuntu and Fedora"
     echo -e " Linux so reboots are not needed. It is free for non-commercial use."
     echo -e " To minimize server downtime, this is a good thing to install.\n"
-    
+
         echo -e -n "${cyan}"
             while :; do
             echo -e "\n"
@@ -988,7 +1491,7 @@ function ksplice_install() {
                 break
             fi
         done
-        echo -e "${nocolor}\n" 
+        echo -e "${nocolor}\n"
 
         if [ "${KSPLICE,,}" = "Y" ] || [ "${KSPLICE,,}" = "y" ]
         then
@@ -1100,7 +1603,7 @@ function motd_install() {
                 break
             fi
         done
-        echo -e "${nocolor}\n" 
+        echo -e "${nocolor}\n"
 
     # check if MOTDP is affirmative
     if [ "${MOTDP,,}" = "Y" ] || [ "${MOTDP,,}" = "y" ]
@@ -1169,7 +1672,7 @@ function restart_sshd() {
                 break
             fi
         done
-        echo -e "${nocolor}\n" 
+        echo -e "${nocolor}\n"
 
     # check if SSHDRESTART is valid
     if [ "${SSHDRESTART,,}" = "Y" ] || [ "${SSHDRESTART,,}" = "y" ]
@@ -1266,12 +1769,6 @@ function display_banner() {
     echo -e "${lightcyan}"
     cat << "EOF"
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-     _    _  __                     _         ____ _   ___   __
-    / \  | |/ /___ _ __ _   _ _ __ | |_ ___  / ___| | | \ \ / /
-   / _ \ | ' // __| '__| | | | '_ \| __/ _ \| |  _| | | |\ V /
-  / ___ \| . \ (__| |  | |_| | |_) | || (_) | |_| | |_| | | |
- /_/   \_\_|\_\___|_|   \__, | .__/ \__\___/ \____|\___/  |_|
-                        |___/|_|
             __  __             __  __  ___          __
   -->  \  /|__)/__`   |__| /\ |__)|  \|__ |\ |||\ |/ _`  <--
         \/ |   .__/   |  |/~~\|  \|__/|___| \||| \|\__>
@@ -1286,16 +1783,22 @@ display_banner
 begin_log
 create_swap
 update_upgrade
-favored_packages
-crypto_packages
+useful_packages
+install_mongodb
+install_powershell
+install_netcore
+install_nginx
+install_supervisor
 add_user
 collect_sshd
 prompt_rootlogin
 disable_passauth
+harden_ssh
+limit_journal
 ufw_config
 server_hardening
-google_auth
-ksplice_install
+#google_auth
+#ksplice_install
 motd_install
 restart_sshd
 install_complete
