@@ -18,7 +18,7 @@
 #    You should have received a copy of the GNU General Public License along
 #    with this program; if not, write to the Free Software Foundation, Inc.,
 #    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
- 
+
 load=`cat /proc/loadavg | awk '{print $1}'`
 root_usage=`df -h / | awk '/\// {print $(NF-1)}'`
 memory_usage=`free -m | awk '/Mem:/ { printf("%3.1f%%", $3/$2*100) }'`

@@ -240,36 +240,39 @@ function install_netcore() {
     echo -e " $(date +%m.%d.%Y_%H:%M:%S) : QUERY TO INSTALL .NET CORE" | tee -a "$LOGFILE"
     echo -e "--------------------------------------------------------- \n"
     echo -e -n "${cyan}"
-       while :; do
-        echo -e "\n"
-        read -n 1 -s -r -p " Would you like to install the .NET Core Runtime? y/n  " NETCORE
-        if [[ ${NETCORE,,} == "y" || ${NETCORE,,} == "Y" || ${NETCORE,,} == "N" || ${NETCORE,,} == "n" ]]
-        then
-               break
-           fi
-       done
+        while :; do
+            echo -e "\n"
+            read -n 1 -s -r -p " Would you like to install the .NET Core Runtime? y/n  " NETCORE
+            if [[ ${NETCORE,,} == "y" || ${NETCORE,,} == "Y" || ${NETCORE,,} == "N" || ${NETCORE,,} == "n" ]]
+            then
+                break
+            fi
+        done
     echo -e "${nocolor}"
 
     # check if NETCORE is valid
     if [ "${NETCORE,,}" = "Y" ] || [ "${NETCORE,,}" = "y" ]
     then echo -e "\n"
-         echo -e -n "${yellow}"
-         echo -e "--------------------------------------------------- " | tee -a "$LOGFILE"
-         echo -e " $(date +%m.%d.%Y_%H:%M:%S) : INSTALLING .NET CORE RUNTIME " | tee -a "$LOGFILE"
-         echo -e "--------------------------------------------------- " | tee -a "$LOGFILE"
-         echo -e -n "${white}"
-         echo ' # apt-get -qqy -o=Dpkg::Use-Pty=0 -o=Acquire::ForceIPv4=true install aspnetcore-runtime-6.0' | tee -a "$LOGFILE"
-         echo -e "------------------------------------------------- " | tee -a "$LOGFILE"
-         echo -e -n "${nocolor}"
-         apt-get -qqy -o=Dpkg::Use-Pty=0 -o=Acquire::ForceIPv4=true install aspnetcore-runtime-6.0 | tee -a "$LOGFILE"
-         echo -e -n "${lightgreen}"
-         echo -e "----------------------------------------------------- " | tee -a "$LOGFILE"
-         echo -e " $(date +%m.%d.%Y_%H:%M:%S) : .NET CORE RUNTIME INSTALLED SUCCESFULLY " | tee -a "$LOGFILE"
-         echo -e "----------------------------------------------------- " | tee -a "$LOGFILE"
-         echo -e -n "${nocolor}"
+        echo -e -n "${yellow}"
+        echo -e "--------------------------------------------------- " | tee -a "$LOGFILE"
+        echo -e " $(date +%m.%d.%Y_%H:%M:%S) : INSTALLING .NET CORE RUNTIME " | tee -a "$LOGFILE"
+        echo -e "--------------------------------------------------- " | tee -a "$LOGFILE"
+        echo -e -n "${white}"
+        echo ' # apt-get -qqy -o=Dpkg::Use-Pty=0 -o=Acquire::ForceIPv4=true install aspnetcore-runtime-6.0' | tee -a "$LOGFILE"
+        echo -e "------------------------------------------------- " | tee -a "$LOGFILE"
+        echo -e " Updating Repository Preferences (Prefer Ubuntu Repository)" | tee -a "$LOGFILE"
+        echo -e "---------------------------------------------------- \n " | tee -a "$LOGFILE"
+        cat etc/repo-preferences > /etc/apt/preferences
+        echo -e -n "${nocolor}"
+        apt-get -qqy -o=Dpkg::Use-Pty=0 -o=Acquire::ForceIPv4=true install aspnetcore-runtime-6.0 | tee -a "$LOGFILE"
+        echo -e -n "${lightgreen}"
+        echo -e "----------------------------------------------------- " | tee -a "$LOGFILE"
+        echo -e " $(date +%m.%d.%Y_%H:%M:%S) : .NET CORE RUNTIME INSTALLED SUCCESFULLY " | tee -a "$LOGFILE"
+        echo -e "----------------------------------------------------- " | tee -a "$LOGFILE"
+        echo -e -n "${nocolor}"
     else
-     	echo -e -n "${yellow}"
         clear
+        echo -e -n "${yellow}"
         echo  -e "----------------------------------------------------- " >> $LOGFILE 2>&1
         echo  "    ** Skipping .NET Core Runtime **" >> $LOGFILE 2>&1
         echo  -e "-----------------------------------------------------" >> $LOGFILE 2>&1
@@ -303,28 +306,30 @@ function install_powershell() {
     # check if PSHELL is valid
     if [ "${PSHELL,,}" = "Y" ] || [ "${PSHELL,,}" = "y" ]
     then echo -e "\n"
-         echo -e -n "${yellow}"
-         echo -e "--------------------------------------------------- " | tee -a "$LOGFILE"
-         echo -e " $(date +%m.%d.%Y_%H:%M:%S) : INSTALLING POWERSHELL " | tee -a "$LOGFILE"
-         echo -e "--------------------------------------------------- " | tee -a "$LOGFILE"
-         echo -e -n "${white}"
-         echo ' # apt-get -qqy -o=Dpkg::Use-Pty=0 -o=Acquire::ForceIPv4=true install ' | tee -a "$LOGFILE"
-         echo '   powershell' | tee -a "$LOGFILE"
-         echo -e "------------------------------------------------- " | tee -a "$LOGFILE"
-         echo -e -n "${nocolor}"
-         wget -q "https://packages.microsoft.com/config/ubuntu/$(lsb_release -rs)/packages-microsoft-prod.deb"
-         sudo dpkg -i packages-microsoft-prod.deb
-         rm packages-microsoft-prod.deb
-         apt-get -o=Dpkg::Use-Pty=0 -o=Acquire::ForceIPv4=true update | tee -a "$LOGFILE"
-         apt-get -qqy -o=Dpkg::Use-Pty=0 -o=Acquire::ForceIPv4=true install powershell | tee -a "$LOGFILE"
-         sed -i -e '$aSubsystem powershell /usr/bin/pwsh -sshs -nologo' $SSHDFILE
-         echo -e -n "${lightgreen}"
-         echo -e "----------------------------------------------------- " | tee -a "$LOGFILE"
-         echo -e " $(date +%m.%d.%Y_%H:%M:%S) : POWERSHELL INSTALLED SUCCESFULLY " | tee -a "$LOGFILE"
-         echo -e "----------------------------------------------------- " | tee -a "$LOGFILE"
-         echo -e -n "${nocolor}"
+        echo -e -n "${yellow}"
+        echo -e "--------------------------------------------------- " | tee -a "$LOGFILE"
+        echo -e " $(date +%m.%d.%Y_%H:%M:%S) : INSTALLING POWERSHELL " | tee -a "$LOGFILE"
+        echo -e "--------------------------------------------------- " | tee -a "$LOGFILE"
+        echo -e -n "${white}"
+        echo ' # apt-get -qqy -o=Dpkg::Use-Pty=0 -o=Acquire::ForceIPv4=true install ' | tee -a "$LOGFILE"
+        echo '   powershell' | tee -a "$LOGFILE"
+        echo -e "------------------------------------------------- " | tee -a "$LOGFILE"
+        echo -e -n "${nocolor}"
+        wget -q "https://packages.microsoft.com/config/ubuntu/$(lsb_release -rs)/packages-microsoft-prod.deb"
+        sudo dpkg -i packages-microsoft-prod.deb
+        rm packages-microsoft-prod.deb
+        apt-get -o=Dpkg::Use-Pty=0 -o=Acquire::ForceIPv4=true update | tee -a "$LOGFILE"
+        apt-get -qqy -o=Dpkg::Use-Pty=0 -o=Acquire::ForceIPv4=true install powershell | tee -a "$LOGFILE"
+        sed -i -e '$aSubsystem powershell /usr/bin/pwsh -sshs -nologo' $SSHDFILE
+        echo -e -n "${lightgreen}"
+        clear
+        echo -e "----------------------------------------------------- " | tee -a "$LOGFILE"
+        echo -e " $(date +%m.%d.%Y_%H:%M:%S) : POWERSHELL INSTALLED SUCCESFULLY " | tee -a "$LOGFILE"
+        echo -e "----------------------------------------------------- " | tee -a "$LOGFILE"
+        echo -e -n "${nocolor}"
     else
-     	echo -e -n "${yellow}"
+        clear
+        echo -e -n "${yellow}"
         echo  -e "----------------------------------------------------- " >> $LOGFILE 2>&1
         echo  "    ** Skipping Powershell Install **" >> $LOGFILE 2>&1
         echo  -e "-----------------------------------------------------" >> $LOGFILE 2>&1
@@ -363,27 +368,28 @@ function install_mongodb() {
     # check if MONGODB is valid
     if [ "${MONGODB,,}" = "Y" ] || [ "${MONGODB,,}" = "y" ]
     then echo -e "\n"
-         echo -e -n "${yellow}"
-         echo -e "--------------------------------------------------- " | tee -a "$LOGFILE"
-         echo -e " $(date +%m.%d.%Y_%H:%M:%S) : INSTALLING MONGODB ENTERPRISE " | tee -a "$LOGFILE"
-         echo -e "--------------------------------------------------- " | tee -a "$LOGFILE"
-         echo -e -n "${white}"
-         echo ' # apt-get -qqy -o=Dpkg::Use-Pty=0 -o=Acquire::ForceIPv4=true install ' | tee -a "$LOGFILE"
-         echo '   mongodb-enterprise-database mongodb-enterprise-tools mongodb-mongosh-shared-openssl3' | tee -a "$LOGFILE"
-         echo -e "------------------------------------------------- " | tee -a "$LOGFILE"
-         echo -e -n "${nocolor}"
-         curl -fsSL https://pgp.mongodb.com/server-6.0.asc | sudo gpg -o /usr/share/keyrings/mongodb-server-6.0.gpg --dearmor
-         echo "deb [ arch=amd64,arm64 signed-by=/usr/share/keyrings/mongodb-server-6.0.gpg ] https://repo.mongodb.com/apt/ubuntu jammy/mongodb-enterprise/6.0 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-enterprise-6.0.list
-         apt-get -o=Dpkg::Use-Pty=0 -o=Acquire::ForceIPv4=true update | tee -a "$LOGFILE"
-         apt-get -qqy -o=Dpkg::Use-Pty=0 -o=Acquire::ForceIPv4=true install mongodb-enterprise-database mongodb-enterprise-tools mongodb-mongosh-shared-openssl3 | tee -a "$LOGFILE"
-         systemctl enable mongod
-         systemctl start mongod
-         echo -e -n "${lightgreen}"
-         echo -e "----------------------------------------------------- " | tee -a "$LOGFILE"
-         echo -e " $(date +%m.%d.%Y_%H:%M:%S) : MONGODB ENTERPRISE INSTALLED SUCCESFULLY " | tee -a "$LOGFILE"
-         echo -e "----------------------------------------------------- " | tee -a "$LOGFILE"
-         echo -e -n "${nocolor}"
+        echo -e -n "${yellow}"
+        echo -e "--------------------------------------------------- " | tee -a "$LOGFILE"
+        echo -e " $(date +%m.%d.%Y_%H:%M:%S) : INSTALLING MONGODB ENTERPRISE " | tee -a "$LOGFILE"
+        echo -e "--------------------------------------------------- " | tee -a "$LOGFILE"
+        echo -e -n "${white}"
+        echo ' # apt-get -qqy -o=Dpkg::Use-Pty=0 -o=Acquire::ForceIPv4=true install ' | tee -a "$LOGFILE"
+        echo '   mongodb-enterprise-database mongodb-enterprise-tools mongodb-mongosh-shared-openssl3' | tee -a "$LOGFILE"
+        echo -e "------------------------------------------------- " | tee -a "$LOGFILE"
+        echo -e -n "${nocolor}"
+        curl -fsSL https://pgp.mongodb.com/server-6.0.asc | sudo gpg -o /usr/share/keyrings/mongodb-server-6.0.gpg --dearmor
+        echo "deb [ arch=amd64,arm64 signed-by=/usr/share/keyrings/mongodb-server-6.0.gpg ] https://repo.mongodb.com/apt/ubuntu jammy/mongodb-enterprise/6.0 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-enterprise-6.0.list
+        apt-get -o=Dpkg::Use-Pty=0 -o=Acquire::ForceIPv4=true update | tee -a "$LOGFILE"
+        apt-get -qqy -o=Dpkg::Use-Pty=0 -o=Acquire::ForceIPv4=true install mongodb-enterprise-database mongodb-enterprise-tools mongodb-mongosh-shared-openssl3 | tee -a "$LOGFILE"
+        systemctl enable mongod
+        systemctl start mongod
+        echo -e -n "${lightgreen}"
+        echo -e "----------------------------------------------------- " | tee -a "$LOGFILE"
+        echo -e " $(date +%m.%d.%Y_%H:%M:%S) : MONGODB ENTERPRISE INSTALLED SUCCESFULLY " | tee -a "$LOGFILE"
+        echo -e "----------------------------------------------------- " | tee -a "$LOGFILE"
+        echo -e -n "${nocolor}"
     else
+        clear
         echo -e -n "${yellow}"
         echo  -e "----------------------------------------------------- " >> $LOGFILE 2>&1
         echo  "    ** Skipping MongoDb Install **" >> $LOGFILE 2>&1
@@ -422,23 +428,24 @@ function install_nginx() {
     # check if NGINX is valid
     if [ "${NGINX,,}" = "Y" ] || [ "${NGINX,,}" = "y" ]
     then echo -e "\n"
-         echo -e -n "${yellow}"
-         echo -e "--------------------------------------------------- " | tee -a "$LOGFILE"
-         echo -e " $(date +%m.%d.%Y_%H:%M:%S) : INSTALLING NGINX  " | tee -a "$LOGFILE"
-         echo -e "--------------------------------------------------- " | tee -a "$LOGFILE"
-         echo -e -n "${white}"
-         echo ' # apt-get -qqy -o=Dpkg::Use-Pty=0 -o=Acquire::ForceIPv4=true install nginx' | tee -a "$LOGFILE"
-         echo -e "------------------------------------------------- " | tee -a "$LOGFILE"
-         echo -e -n "${nocolor}"
-         apt-get -qqy -o=Dpkg::Use-Pty=0 -o=Acquire::ForceIPv4=true install nginx | tee -a "$LOGFILE"
-         sudo systemctl enable nginx
-         sudo systemctl start nginx
-         echo -e -n "${lightgreen}"
-         echo -e "----------------------------------------------------- " | tee -a "$LOGFILE"
-         echo -e " $(date +%m.%d.%Y_%H:%M:%S) : NGINX INSTALLED SUCCESFULLY " | tee -a "$LOGFILE"
-         echo -e "----------------------------------------------------- " | tee -a "$LOGFILE"
-         echo -e -n "${nocolor}"
+        echo -e -n "${yellow}"
+        echo -e "--------------------------------------------------- " | tee -a "$LOGFILE"
+        echo -e " $(date +%m.%d.%Y_%H:%M:%S) : INSTALLING NGINX  " | tee -a "$LOGFILE"
+        echo -e "--------------------------------------------------- " | tee -a "$LOGFILE"
+        echo -e -n "${white}"
+        echo ' # apt-get -qqy -o=Dpkg::Use-Pty=0 -o=Acquire::ForceIPv4=true install nginx' | tee -a "$LOGFILE"
+        echo -e "------------------------------------------------- " | tee -a "$LOGFILE"
+        echo -e -n "${nocolor}"
+        apt-get -qqy -o=Dpkg::Use-Pty=0 -o=Acquire::ForceIPv4=true install nginx | tee -a "$LOGFILE"
+        sudo systemctl enable nginx
+        sudo systemctl start nginx
+        echo -e -n "${lightgreen}"
+        echo -e "----------------------------------------------------- " | tee -a "$LOGFILE"
+        echo -e " $(date +%m.%d.%Y_%H:%M:%S) : NGINX INSTALLED SUCCESFULLY " | tee -a "$LOGFILE"
+        echo -e "----------------------------------------------------- " | tee -a "$LOGFILE"
+        echo -e -n "${nocolor}"
     else
+        clear
         echo -e -n "${yellow}"
         echo  -e "----------------------------------------------------- " >> $LOGFILE 2>&1
         echo  "    ** Skipping Nginx Install **" >> $LOGFILE 2>&1
@@ -451,55 +458,64 @@ function install_nginx() {
     echo -e -n "${nocolor}"
 }
 
-###################
-## INSTALL SUPERVISOR ##
-###################
+######################
+## INSTALL FAIL2BAN ##
+######################
 
-function install_supervisor() {
-    # query user to supervisor
+function install_fail2ban() {
+    # query user to setup fail2ban
     echo -e -n "${lightcyan}"
-    figlet Nginx Setup | tee -a "$LOGFILE"
+    figlet Fail2Ban Setup | tee -a "$LOGFILE"
     echo -e -n "${yellow}"
     echo -e "--------------------------------------------------------- " | tee -a "$LOGFILE"
-    echo -e " $(date +%m.%d.%Y_%H:%M:%S) : QUERY TO INSTALL SUPERVISOR" | tee -a "$LOGFILE"
+    echo -e " $(date +%m.%d.%Y_%H:%M:%S) : QUERY TO INSTALL FAIL2BAN" | tee -a "$LOGFILE"
     echo -e "--------------------------------------------------------- \n"
     echo -e -n "${cyan}"
     while :; do
         echo -e "\n"
-        read -n 1 -s -r -p " Would you like to install Supervisor? y/n  " SUPERVISOR
-        if [[ ${SUPERVISOR,,} == "y" || ${SUPERVISOR,,} == "Y" || ${SUPERVISOR,,} == "N" || ${SUPERVISOR,,} == "n" ]]
+        read -n 1 -s -r -p " Would you like to install Fail2Ban? y/n  " FAIL2BAN
+        if [[ ${FAIL2BAN,,} == "y" || ${FAIL2BAN,,} == "Y" || ${FAIL2BAN,,} == "N" || ${FAIL2BAN,,} == "n" ]]
         then
             break
         fi
     done
     echo -e "${nocolor}"
 
-    # check if SUPERVISOR is valid
-    if [ "${SUPERVISOR,,}" = "Y" ] || [ "${SUPERVISOR,,}" = "y" ]
+    # check if FAIL2BAN is valid
+    if [ "${FAIL2BAN,,}" = "Y" ] || [ "${FAIL2BAN,,}" = "y" ]
     then echo -e "\n"
-         echo -e -n "${yellow}"
-         echo -e "--------------------------------------------------- " | tee -a "$LOGFILE"
-         echo -e " $(date +%m.%d.%Y_%H:%M:%S) : INSTALLING SUPERVISOR  " | tee -a "$LOGFILE"
-         echo -e "--------------------------------------------------- " | tee -a "$LOGFILE"
-         echo -e -n "${white}"
-         echo ' # apt-get -qqy -o=Dpkg::Use-Pty=0 -o=Acquire::ForceIPv4=true install supervisor' | tee -a "$LOGFILE"
-         echo -e "------------------------------------------------- " | tee -a "$LOGFILE"
-         echo -e -n "${nocolor}"
-         apt-get -qqy -o=Dpkg::Use-Pty=0 -o=Acquire::ForceIPv4=true install supervisor | tee -a "$LOGFILE"
-         echo -e -n "${lightgreen}"
-         echo -e "----------------------------------------------------- " | tee -a "$LOGFILE"
-         echo -e " $(date +%m.%d.%Y_%H:%M:%S) : SUPERVISOR INSTALLED SUCCESFULLY " | tee -a "$LOGFILE"
-         echo -e "----------------------------------------------------- " | tee -a "$LOGFILE"
-         echo -e -n "${nocolor}"
+        echo -e -n "${yellow}"
+        echo -e "--------------------------------------------------- " | tee -a "$LOGFILE"
+        echo -e " $(date +%m.%d.%Y_%H:%M:%S) : INSTALLING FAIL2BAN  " | tee -a "$LOGFILE"
+        echo -e "--------------------------------------------------- " | tee -a "$LOGFILE"
+        echo -e -n "${white}"
+        echo ' # apt-get -qqy -o=Dpkg::Use-Pty=0 -o=Acquire::ForceIPv4=true install fail2ban' | tee -a "$LOGFILE"
+        echo -e "------------------------------------------------- " | tee -a "$LOGFILE"
+        echo -e -n "${nocolor}"
+        apt-get -qqy -o=Dpkg::Use-Pty=0 -o=Acquire::ForceIPv4=true install fail2ban | tee -a "$LOGFILE"
+
+        # create jail.local and replace 'ssh' with custom port or 22
+        cp /etc/fail2ban/jail.conf /etc/fail2ban/jail.local
+        sed -i "s/port.*= ssh/port  = $SSHPORT/" /etc/fail2ban/jail.local
+        sed -i "s/$SSHPORTWAS/Port $SSHPORT/" $SSHDFILE >> $LOGFILE 2>&1
+
+
+
+        echo -e -n "${lightgreen}"
+        echo -e "----------------------------------------------------- " | tee -a "$LOGFILE"
+        echo -e " $(date +%m.%d.%Y_%H:%M:%S) : FAIL2BAN INSTALLED SUCCESFULLY " | tee -a "$LOGFILE"
+        echo -e "----------------------------------------------------- " | tee -a "$LOGFILE"
+        echo -e -n "${nocolor}"
     else
+        clear
         echo -e -n "${yellow}"
         echo  -e "----------------------------------------------------- " >> $LOGFILE 2>&1
-        echo  "    ** Skipping Supervisor Install **" >> $LOGFILE 2>&1
+        echo  "    ** Skipping Fail2Ban Install **" >> $LOGFILE 2>&1
         echo  -e "-----------------------------------------------------" >> $LOGFILE 2>&1
     fi
     echo -e -n "${lightgreen}"
     echo -e "----------------------------------------------------------------- " | tee -a "$LOGFILE"
-    echo -e " $(date +%m.%d.%Y_%H:%M:%S) : SUPERVISOR SETUP IS COMPLETE " | tee -a "$LOGFILE"
+    echo -e " $(date +%m.%d.%Y_%H:%M:%S) : FAIL2BAN SETUP IS COMPLETE " | tee -a "$LOGFILE"
     echo -e "----------------------------------------------------------------- " | tee -a "$LOGFILE"
     echo -e -n "${nocolor}"
 }
@@ -523,9 +539,8 @@ function add_user() {
     echo " infinitely more secure, I will not think less of you if you choose to"
     echo " use an RSA key and continue to login as root. I am able to create a "
     echo -e " non-root user if you want me to, but it is not required. \n"
-
-            echo -e -n "${cyan}"
-            while :; do
+    echo -e -n "${cyan}"
+        while :; do
             echo -e "\n"
             read -n 1 -s -r -p " Would you like to add a non-root user? y/n  " ADDUSER
             if [[ ${ADDUSER,,} == "y" || ${ADDUSER,,} == "Y" || ${ADDUSER,,} == "N" || ${ADDUSER,,} == "n" ]]
@@ -533,7 +548,7 @@ function add_user() {
                 break
             fi
         done
-        echo -e "${nocolor}"
+    echo -e "${nocolor}"
 
     # check if ADDUSER is valid
     if [ "${ADDUSER,,}" = "Y" ] || [ "${ADDUSER,,}" = "y" ]
@@ -644,12 +659,24 @@ function collect_sshd() {
     echo -e "---------------------------------------------------- \n" | tee -a "$LOGFILE"
     echo -e -n "${nocolor}"
 
-    # create jail.local and replace 'ssh' with custom port or 22
-    cp /etc/fail2ban/jail.conf /etc/fail2ban/jail.local
-    sed -i "s/port.*= ssh/port     = $SSHPORT/" /etc/fail2ban/jail.local
-
+    # The Fail2Ban local jail could already exist if it were installed abovce. Check if a local jail already exists and update accordingly.
+    echo -e -n "${yellow}"
+    if [ -f "/etc/fail2ban/jail.local" ]; then
+        echo -e "---------------------------------------------------- " | tee -a "$LOGFILE"
+        echo "Local jail /etc/fail2ban/jail.local already exists."      | tee -a "$LOGFILE"
+        echo -e "---------------------------------------------------- " | tee -a "$LOGFILE"
+    else
+        echo -e "---------------------------------------------------- "     | tee -a "$LOGFILE"
+        echo "Local jail /etc/fail2ban/jail.local does NOT already exists." | tee -a "$LOGFILE"
+        echo "Creating jail /etc/fail2ban/jail.local."                      | tee -a "$LOGFILE"
+        echo -e "---------------------------------------------------- "     | tee -a "$LOGFILE"
+        cp /etc/fail2ban/jail.conf /etc/fail2ban/jail.local
+        sudo systemctl enable fail2ban
+        sudo systemctl start fail2ban
+    fi
+    echo -e -n "${nocolor}"
+    sed -i "s/port.*= ssh/port  = $SSHPORT/" /etc/fail2ban/jail.local
     sed -i "s/$SSHPORTWAS/Port $SSHPORT/" $SSHDFILE >> $LOGFILE 2>&1
-    clear
     # Error Handling
     if [ $? -eq 0 ]
     then
@@ -669,6 +696,7 @@ function collect_sshd() {
 
     # Set SSHPORTIS to the final value of the SSH port
     SSHPORTIS=$(sed -n -e '/^Port /p' $SSHDFILE)
+    clear
 }
 
 function prompt_rootlogin {
@@ -1788,7 +1816,7 @@ install_mongodb
 install_powershell
 install_netcore
 install_nginx
-install_supervisor
+install_fail2ban
 add_user
 collect_sshd
 prompt_rootlogin
